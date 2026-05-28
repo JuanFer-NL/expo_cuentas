@@ -1,18 +1,41 @@
 import React from 'react';
 import './App.css';
+import ephData from './data/eph_data.json';
 
 export default function ActividadPobrezaLeyden() {
-  const ingresosEPH = [
-    180000, 220000, 250000, 280000, 320000, 350000, 390000, 420000,
-    460000, 500000, 540000, 590000, 640000, 700000, 760000, 820000,
-    900000, 980000, 1100000, 1250000, 1400000, 1600000, 1900000
-  ];
-
   const [ingresoMinimo, setIngresoMinimo] = React.useState(700000);
+  const [dataLoaded, setDataLoaded] = React.useState(!!ephData?.hogares);
+
+  // Metodología de Leyden:
+  // 1. Y_min = ingreso mínimo que define el usuario
+  // 2. Línea de pobreza de Leyden = Y_min * 0.74 (factor de Leyden)
+  // 3. Una familia es pobre si IPCF_i < Y_min
+  // 4. TPNP = (∑ PONDIH_i · Pobre_i) / ∑ PONDIH_i
 
   const lineaLeyden = ingresoMinimo * 0.74;
-  const personasPobres = ingresosEPH.filter((ingreso) => ingreso < lineaLeyden).length;
-  const tasaPobreza = (personasPobres / ingresosEPH.length) * 100;
+
+  // Calcular tasa de pobreza ponderada usando datos reales
+  let tasaPobrezaPonderada = 0;
+  let hogaresAnalisis = 0;
+  
+  if (dataLoaded && ephData?.hogares) {
+    let pobressPonderados = 0;
+    let pondihTotal = 0;
+
+    ephData.hogares.forEach((hogar) => {
+      // Solo contar hogares con IPCF > 0 (hogares con ingreso reportado)
+      if (hogar.ipcf > 0) {
+        hogaresAnalisis++;
+        const esPobre = hogar.ipcf < ingresoMinimo ? 1 : 0;
+        pobressPonderados += hogar.pondih * esPobre;
+        pondihTotal += hogar.pondih;
+      }
+    });
+
+    if (pondihTotal > 0) {
+      tasaPobrezaPonderada = (pobressPonderados / pondihTotal) * 100;
+    }
+  }
 
   const formatoPesos = (valor) => {
     return new Intl.NumberFormat('es-AR', {
@@ -98,14 +121,14 @@ export default function ActividadPobrezaLeyden() {
             <div className="result-card highlight-card">
               <div className="result-header">
                 <p>Tasa de pobreza estimada</p>
-                <strong>{tasaPobreza.toFixed(1)}%</strong>
+                <strong>{tasaPobrezaPonderada.toFixed(1)}%</strong>
               </div>
               <div className="progress-track" aria-label="Tasa de pobreza estimada">
-                <div className="progress-fill" style={{ width: `${tasaPobreza}%` }} />
+                <div className="progress-fill" style={{ width: `${tasaPobrezaPonderada}%` }} />
               </div>
               <p className="result-note">
-                La estimación compara la línea subjetiva con una distribución
-                simplificada de ingresos basada en la EPH nacional.
+                Tasa de pobreza ponderada calculada sobre {hogaresAnalisis.toLocaleString()} hogares
+                de la Encuesta Permanente de Hogares (EPH) con ingresos reportados.
               </p>
             </div>
           </article>
@@ -114,17 +137,21 @@ export default function ActividadPobrezaLeyden() {
         <section className="info-card">
           <h3>¿Qué representa esta actividad?</h3>
           <p>
-            La pobreza subjetiva busca comprender cómo las personas perciben sus
-            propias condiciones de vida. A diferencia de la pobreza objetiva —que
-            utiliza una canasta fija de bienes y servicios— el enfoque de Leyden
-            incorpora percepciones sociales y expectativas sobre lo que significa
-            “vivir dignamente”.
+            La pobreza subjetiva mediante la metodología de Leyden busca comprender cómo las personas 
+            perciben sus propias condiciones de vida. La línea de Leyden se construye multiplicando el 
+            ingreso mínimo que considerás necesario por el factor 0.74, lo que permite estimar una 
+            línea de pobreza subjetiva.
+          </p>
+          <p style={{ marginTop: '1rem' }}>
+            Esta actividad utiliza datos reales de la Encuesta Permanente de Hogares (EPH) de Argentina,
+            comparando el ingreso per cápita familiar (IPCF) de cada hogar con tu línea de pobreza subjetiva
+            y calculando una tasa de pobreza ponderada según el peso demográfico de cada hogar.
           </p>
         </section>
 
         <footer className="activity-footnote">
-          Actividad educativa inspirada en la metodología de pobreza subjetiva de
-          Leyden y datos de la Encuesta Permanente de Hogares (EPH) de Argentina.
+          Actividad educativa basada en la metodología de pobreza subjetiva de Leyden,
+          utilizando datos reales de la Encuesta Permanente de Hogares (EPH) de Argentina.
         </footer>
       </main>
     </div>
