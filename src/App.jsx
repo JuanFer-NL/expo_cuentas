@@ -1,29 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
-import ephData from './data/eph_data.json';
 
 export default function ActividadPobrezaLeyden() {
-  const [ingresoMinimo, setIngresoMinimo] = React.useState(700000);
-  const [dataLoaded, setDataLoaded] = React.useState(!!ephData?.hogares);
+  const [ingresoMinimo, setIngresoMinimo] = useState(700000);
+  
+  // Nuevos estados para manejar la carga asíncrona
+  const [ephData, setEphData] = useState(null);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
-  // Metodología de Leyden:
-  // 1. Y_min = ingreso mínimo que define el usuario
-  // 2. Línea de pobreza de Leyden = Y_min * 0.74 (factor de Leyden)
-  // 3. Una familia es pobre si IPCF_i < Línea de Leyden
-  // 4. TPNP = (∑ PONDIH_i · Pobre_i) / ∑ PONDIH_i
+  // useEffect para cargar los datos solo cuando la app inicia
+  useEffect(() => {
+    fetch('/eph_data.json')
+      .then((respuesta) => respuesta.json())
+      .then((datos) => {
+        setEphData(datos);
+        setDataLoaded(true);
+      })
+      .catch((error) => console.error("Error al cargar la EPH:", error));
+  }, []);
 
   const lineaLeyden = ingresoMinimo * 0.74;
 
-  // Calcular tasa de pobreza ponderada usando datos reales
   let tasaPobrezaPonderada = 0;
   let hogaresAnalisis = 0;
   
-  if (dataLoaded && ephData?.hogares) {
+  // Cambiamos ligeramente la condición por si el navegador viejo falla con el "?."
+  if (dataLoaded && ephData && ephData.hogares) {
     let pobressPonderados = 0;
     let pondihTotal = 0;
 
     ephData.hogares.forEach((hogar) => {
-      // Solo contar hogares con IPCF > 0 (hogares con ingreso reportado)
       if (hogar.ipcf > 0) {
         hogaresAnalisis++;
         const esPobre = hogar.ipcf < lineaLeyden ? 1 : 0;
