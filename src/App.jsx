@@ -3,20 +3,30 @@ import './App.css';
 
 export default function ActividadPobrezaLeyden() {
   const [ingresoMinimo, setIngresoMinimo] = useState(700000);
-  
-  // Nuevos estados para manejar la carga asíncrona
   const [ephData, setEphData] = useState(null);
   const [dataLoaded, setDataLoaded] = useState(false);
 
-  // useEffect para cargar los datos solo cuando la app inicia
   useEffect(() => {
-    fetch('/eph_data.json')
-      .then((respuesta) => respuesta.json())
-      .then((datos) => {
+    // Usamos XMLHttpRequest porque es 100% compatible con navegadores viejos
+    var peticion = new XMLHttpRequest();
+    
+    // Le agregamos un timestamp a la URL (?t=...) para obligar al iPad a 
+    // buscar el archivo nuevo en Vercel y no usar el que tiene guardado en caché
+    peticion.open('GET', '/eph_data.json?t=' + new Date().getTime(), true);
+    
+    peticion.onload = function() {
+      if (peticion.status >= 200 && peticion.status < 400) {
+        var datos = JSON.parse(peticion.responseText);
         setEphData(datos);
         setDataLoaded(true);
-      })
-      .catch((error) => console.error("Error al cargar la EPH:", error));
+      }
+    };
+    
+    peticion.onerror = function() {
+      console.error("Error de conexión al cargar la EPH");
+    };
+
+    peticion.send();
   }, []);
 
   const lineaLeyden = ingresoMinimo * 0.74;
@@ -24,7 +34,7 @@ export default function ActividadPobrezaLeyden() {
   let tasaPobrezaPonderada = 0;
   let hogaresAnalisis = 0;
   
-  // Cambiamos ligeramente la condición por si el navegador viejo falla con el "?."
+  // Condicional seguro sin usar encadenamiento opcional (?.)
   if (dataLoaded && ephData && ephData.hogares) {
     let pobressPonderados = 0;
     let pondihTotal = 0;
