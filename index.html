@@ -8,6 +8,24 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Capturar errores generales
+      window.onerror = function(mensaje, url, linea, columna, error) {
+        var errorDiv = document.createElement('div');
+        errorDiv.style.cssText = 'color: white; background-color: red; position: fixed; top: 0; left: 0; z-index: 9999; width: 100%; padding: 15px; font-size: 16px; font-family: sans-serif;';
+        errorDiv.innerText = 'Error fatal: ' + mensaje + ' (Línea ' + linea + ')';
+        document.body.appendChild(errorDiv);
+        return false;
+      };
+
+      // Capturar promesas o fetches que fallen
+      window.onunhandledrejection = function(evento) {
+        var errorDiv = document.createElement('div');
+        errorDiv.style.cssText = 'color: white; background-color: orange; position: fixed; top: 60px; left: 0; z-index: 9999; width: 100%; padding: 15px; font-size: 16px; font-family: sans-serif;';
+        errorDiv.innerText = 'Promesa fallida: ' + evento.reason;
+        document.body.appendChild(errorDiv);
+      };
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
