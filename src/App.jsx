@@ -9,7 +9,7 @@ export default function ActividadPobrezaLeyden() {
   // Metodología de Leyden:
   // 1. Y_min = ingreso mínimo que define el usuario
   // 2. Línea de pobreza de Leyden = Y_min * 0.74 (factor de Leyden)
-  // 3. Una familia es pobre si IPCF_i < Y_min
+  // 3. Una familia es pobre si IPCF_i < Línea de Leyden
   // 4. TPNP = (∑ PONDIH_i · Pobre_i) / ∑ PONDIH_i
 
   const lineaLeyden = ingresoMinimo * 0.74;
@@ -26,7 +26,7 @@ export default function ActividadPobrezaLeyden() {
       // Solo contar hogares con IPCF > 0 (hogares con ingreso reportado)
       if (hogar.ipcf > 0) {
         hogaresAnalisis++;
-        const esPobre = hogar.ipcf < ingresoMinimo ? 1 : 0;
+        const esPobre = hogar.ipcf < lineaLeyden ? 1 : 0;
         pobressPonderados += hogar.pondih * esPobre;
         pondihTotal += hogar.pondih;
       }
@@ -51,7 +51,7 @@ export default function ActividadPobrezaLeyden() {
         <section className="hero-panel">
           <div className="hero-copy">
             <span className="eyebrow">Actividad interactiva</span>
-            <h1>Lo que las cifras no muestran</h1>
+            <h1>Estime su tasa de pobreza</h1>
             <p>
               Explorá cómo cambia la pobreza cuando las personas definen el
               ingreso mínimo necesario para no sentirse pobres. Ajustá el valor y

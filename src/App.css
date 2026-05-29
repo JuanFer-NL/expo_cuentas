@@ -24,7 +24,6 @@ body {
 .activity-card {
   width: min(1160px, 100%);
   background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(84, 143, 188, 0.16);
   box-shadow: 0 32px 80px rgba(62, 112, 152, 0.14);
   border-radius: 32px;
   overflow: hidden;
@@ -248,7 +247,6 @@ body {
 .info-card {
   margin: 0 48px 32px;
   background: #e9f2fb;
-  border-left: 6px solid #4a7fa3;
   border-radius: 28px;
   padding: 28px 32px;
 }
